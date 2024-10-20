@@ -1,14 +1,15 @@
-const express = require('express')
-const cors = require('cors')
+const express = require('express');
+const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-const app = express()
+const app = express();
 require('dotenv').config()
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 5000;
 
 
-// middlewire
+// middleware
 app.use(cors());
 app.use(express.json());
+
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.hflxk.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -28,69 +29,88 @@ async function run() {
 
     const productBrandsCollection = client.db('productDB').collection('products');
     const productCollection = client.db('productDB').collection('all_products');
-    
-    // Brand Cullection Get
-    app.get("/brands", async(req,res)=>{
-        const cursor = productBrandsCollection.find();
-        const result = await cursor.toArray();
+    const productCartCollection = client.db('productDB').collection('Cart-Products');
+
+    app.get("/products", async(req, res) => {
+        const result = await productCollection.find().toArray();
         res.send(result);
     })
 
-        app.get("/products", async(req,res)=>{
-        const cursor = productCollection.find();
-        const result = await cursor.toArray();
-        res.send(result);
-    })
 
-    app.get("/products/:id", async(req,res)=>{
+    app.get("/products/:id", async(req, res) => {
         const id = req.params.id;
-        const query = {_id: new ObjectId(id)}
-        const result = await productCollection.findOne(query);
+        const quiry = {_id: new ObjectId(id)};
+        const product = await productCollection.findOne(quiry);
+        res.send(product);
+    })
+
+
+    app.get("/products/email/:email", async(req, res) => {
+        const quiry = {email: req.params.email}
+        const products = await productCollection.find(quiry).toArray();
+        res.send(products);
+    })
+
+
+    app.get("/products/brand/:brand", async(req, res) => {
+       const filter = {brand: req.params.brand}
+        const products = await productCollection.find(filter).toArray();
+        res.send(products);
+    })
+
+
+    app.post("/products", async(req, res) => {
+        const product = req.body;
+        const result = await productCollection.insertOne(product);
+        res.send(result);
+    })
+
+    app.put("/products/:id", async(req, res) => {
+        const id = req.params.id;
+        const product = req.body;
+        const options = { upsert: true };
+        const filter = { _id: new ObjectId(id) };
+        const updateDoc = { 
+            $set:{
+            name: product.name,
+            price: product.price,
+            image: product.image,
+            type: product.type,
+            brand: product.brand,
+            rating: product.rating,
+            description: product.description,
+            email: product.email
+            } 
+         };
+        const result = await productCollection.updateOne(filter, updateDoc, options);
         res.send(result);
     })
 
 
-     app.get("/products/:brand", async(req, res) =>{
-      const query = {brand: req.params.brand};
-      const result = await productCollection.find(query).toArray();
-      res.send(result);
+    app.delete("/products/:id", async(req, res) => {
+        const id = req.params.id;
+        const result = await productCollection.deleteOne({ _id: new ObjectId(id) });
+        res.send(result);
     })
 
 
-     app.get("/products/:email", async(req, res) =>{
-      const query = {email: req.params.email}
-      const result = await productCollection.find(query).toArray();
-      res.send(result);
+    // cartCollection
+    app.get("/carts", async(req, res) => {
+        const result = await productCartCollection.find().toArray();
+        res.send(result);
     })
 
-
-    app.post("/Products", async(req, res)=>{
-      const product = req.body;
-      const result = await productCollection.insertOne(product);
-      res.send(result);
-    })
-    
-
-    app.put("/Products/:id", async(req, res)=>{
-      const id = req.params.id;
-      const Product = req.body;
-      const query = {_id: new ObjectId(id)};
-       const options = { upsert: true };
-      const updatedProduct = {
-        $set: {
-            name: Product.name,
-            price: Product.price,
-            image: Product.image,
-            type: Product.type,
-            brand: Product.brand,
-            rating: Product.rating,
-            description: Product.description
-        }
-      }
-      const result = await productCollection.updateOne(query, updatedProduct, options);
-      res.send(result);
+    app.post("/carts", async(req, res) => {
+        const product = req.body;
+        const result = await productCartCollection.insertOne(product);
+        res.send(result);
     })
 
+    // brandCollection
+    app.get("/brands", async(req, res) => {
+        const result = await productBrandsCollection.find().toArray();
+        res.send(result);
+    })
 
     
     await client.db("admin").command({ ping: 1 });
@@ -102,10 +122,12 @@ async function run() {
 }
 run().catch(console.dir);
 
-app.get("/", (req, res)=>{
-    res.send('Giga Gadets Shop Server is Running');
+
+
+app.get('/', (req, res) => {
+    res.send('Giga Gadgets shop server Running')
 })
 
-app.listen(port, ()=>{
-    console.log(`Giga Gadets Shop Server is Running port ${port}`);
-})
+app.listen(port,()=>{
+    console.log(`Giga Gadgets Server is running on port ${port}`)
+ })
