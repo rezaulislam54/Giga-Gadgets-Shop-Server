@@ -86,7 +86,6 @@ async function run() {
         res.send(result);
     })
 
-
     app.delete("/products/:id", async(req, res) => {
         const id = req.params.id;
         const result = await productCollection.deleteOne({ _id: new ObjectId(id) });
@@ -102,15 +101,10 @@ async function run() {
 
     app.get("/carts/:id", async(req, res) => {
         const id = req.params.id;
+        console.log(id);
         const quiry = {_id: new ObjectId(id)};
         const product = await productCartCollection.findOne(quiry);
         res.send(product);
-    })
-
-     app.delete("/carts/:id", async(req, res) => {
-        const id = req.params.id;
-        const result = await productCartCollection.deleteOne({ _id: new ObjectId(id) });
-        res.send(result);
     })
   
     app.get("/carts/email/:email", async(req, res) => {
@@ -126,7 +120,11 @@ async function run() {
         res.send(result);
     })
 
-
+    app.delete("/carts/:id", async(req, res) => {
+        const id = req.params.id;
+        const result = await productCartCollection.deleteOne({ _id: new ObjectId(id) });
+        res.send(result);
+    })
 
     // brandCollection
     app.get("/brands", async(req, res) => {
