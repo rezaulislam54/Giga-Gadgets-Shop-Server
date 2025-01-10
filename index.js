@@ -99,21 +99,6 @@ async function run() {
         res.send(result);
     })
 
-    app.get("/carts/:id", async(req, res) => {
-        const id = req.params.id;
-        console.log(id);
-        const quiry = {_id: new ObjectId(id)};
-        const product = await productCartCollection.findOne(quiry);
-        res.send(product);
-    })
-  
-    app.get("/carts/email/:email", async(req, res) => {
-        const email = req.params.email;
-        const quiry = {email: email}
-        const products = await productCartCollection.find(quiry).toArray();
-        res.send(products);
-    })
-
     app.post("/carts", async(req, res) => {
         const product = req.body;
         const result = await productCartCollection.insertOne(product);
@@ -122,9 +107,26 @@ async function run() {
 
     app.delete("/carts/:id", async(req, res) => {
         const id = req.params.id;
-        const result = await productCartCollection.deleteOne({ _id: new ObjectId(id) });
+        const quiry = {_id: new ObjectId(id)};
+        const result = await productCartCollection.deleteOne(quiry);
         res.send(result);
     })
+
+    // app.get("/carts/:id", async(req, res) => {
+    //     const id = req.params.id;
+    //     console.log(id);
+    //     const quiry = {_id: new ObjectId(id)};
+    //     const product = await productCartCollection.findOne(quiry);
+    //     res.send(product);
+    // })
+  
+    app.get("/carts/email/:email", async(req, res) => {
+        const email = req.params.email;
+        const quiry = {email: email}
+        const products = await productCartCollection.find(quiry).toArray();
+        res.send(products);
+    })
+
 
     // brandCollection
     app.get("/brands", async(req, res) => {
